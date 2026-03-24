@@ -40,7 +40,7 @@ model.fit(X_res, y_res)
 print("STEP 6: Model trained")
 
 # Save model
-joblib.dump(model, "model.pkl")
+joblib.dump(model, "./model.pkl")
 
 print("MODEL SAVED SUCCESSFULLY")
 print("FILES AFTER SAVE:", os.listdir())
