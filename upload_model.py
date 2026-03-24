@@ -1,6 +1,8 @@
 from huggingface_hub import HfApi
 import os
 
+print("FILES BEFORE UPLOAD:", os.listdir())
+
 api = HfApi()
 
 api.upload_file(
