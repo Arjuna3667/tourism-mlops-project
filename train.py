@@ -44,3 +44,9 @@ joblib.dump(model, "./model.pkl")
 
 print("MODEL SAVED SUCCESSFULLY")
 print("FILES AFTER SAVE:", os.listdir())
+
+model_path = os.path.join(os.getcwd(), "model.pkl")
+joblib.dump(model, model_path)
+
+print("Model saved at:", model_path)
+print("Files after save:", os.listdir())
