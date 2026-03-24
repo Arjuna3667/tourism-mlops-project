@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
+    
     - name: Checkout code
       uses: actions/checkout@v4
 
@@ -30,24 +30,18 @@ jobs:
     - name: Run Training Script
       run: python train.py
 
-    #  ADD THIS STEP
-    - name: Check files after training
-      run: ls -l
-
-    - name: Upload model to Hugging Face
-    - name: Run Training Script
-  run: python train.py
-
     - name: Verify model file exists
-  run: |
-    echo "Checking model file..."
-    ls -l
-    test -f model.pkl && echo "MODEL EXISTS" || echo "MODEL MISSING "
+      run: |
+        echo "Checking model file..."
+        ls -l
+        if [ -f model.pkl ]; then
+          echo "MODEL EXISTS"
+        else
+          echo "MODEL MISSING"
+          exit 1
+        fi
 
     - name: Upload model to Hugging Face
-  env:
-    HF_TOKEN: ${{ secrets.HF_TOKEN }}
-  run: python upload_model.py
       env:
         HF_TOKEN: ${{ secrets.HF_TOKEN }}
       run: python upload_model.py
