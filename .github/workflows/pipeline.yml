@@ -13,7 +13,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    
     - name: Checkout code
       uses: actions/checkout@v4
 
@@ -34,12 +33,7 @@ jobs:
       run: |
         echo "Checking model file..."
         ls -l
-        if [ -f model.pkl ]; then
-          echo "MODEL EXISTS"
-        else
-          echo "MODEL MISSING"
-          exit 1
-        fi
+        test -f model.pkl && echo "MODEL EXISTS" || (echo "MODEL MISSING" && exit 1)
 
     - name: Upload model to Hugging Face
       env:
