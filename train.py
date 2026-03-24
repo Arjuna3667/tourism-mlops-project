@@ -4,7 +4,7 @@ from imblearn.over_sampling import SMOTE
 import joblib
 
 # Load data
-df = pd.read_csv("data/train.csv")
+df = pd.read_csv("train.csv")
 
 # KEEP ONLY REQUIRED COLUMNS
 df = df[[
