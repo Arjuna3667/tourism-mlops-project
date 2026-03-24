@@ -1,10 +1,16 @@
-from huggingface_hub import upload_file
+from huggingface_hub import HfApi
 import os
 
-upload_file(
+print("Files in current directory:", os.listdir())
+
+HF_TOKEN = os.getenv("HF_TOKEN")
+
+api = HfApi()
+
+api.upload_file(
     path_or_fileobj="model.pkl",
     path_in_repo="model.pkl",
     repo_id="Arjuna3667/tourism-model",
     repo_type="model",
-    token=os.environ["HF_TOKEN"]
+    token=HF_TOKEN
 )
