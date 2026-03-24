@@ -3,8 +3,10 @@ import joblib
 from xgboost import XGBClassifier
 from imblearn.over_sampling import SMOTE
 
-# Load dataset
-df = pd.read_csv("data/train.csv")
+# Load dataset from Hugging Face
+df = pd.read_csv(
+    "https://huggingface.co/datasets/Arjuna3667/tourism-package-data/resolve/main/tourism.csv"
+)
 
 X = df.drop("ProdTaken", axis=1)
 y = df["ProdTaken"]
