@@ -9,9 +9,10 @@ st.title("Tourism Package Prediction")
 # Load model
 try:
     model_path = hf_hub_download(
-        repo_id="Arjuna3667/tourism-model",
-        filename="model.pkl"
-    )
+    repo_id="Arjuna3667/tourism-model",
+    filename="model.pkl",
+    repo_type="model"   
+)
     model = joblib.load(model_path)
 except Exception as e:
     st.error(f"Model loading failed: {e}")
