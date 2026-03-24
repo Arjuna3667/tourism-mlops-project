@@ -30,7 +30,7 @@ jobs:
     - name: Run Training Script
       run: python train.py
 
-    # 🔥 ADD THIS STEP
+    #  ADD THIS STEP
     - name: Check files after training
       run: ls -l
 
