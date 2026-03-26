@@ -1,56 +1,63 @@
 import streamlit as st
-import pandas as pd
-import numpy as np
+import os
 import joblib
-from huggingface_hub import hf_hub_download
+import pandas as pd
+import logging
+import warnings
+import sys
 
-st.title("Tourism Package Prediction")
+warnings.filterwarnings("ignore")
 
-# Load model
-try:
-    model_path = hf_hub_download(
-    repo_id="Arjuna3667/tourism-model",
-    filename="model.pkl",
-    repo_type="model"   
-)
-    model = joblib.load(model_path)
-except Exception as e:
-    st.error(f"Model loading failed: {e}")
-    st.stop()
+class DummyFile:
+    def write(self, x): pass
+    def flush(self): pass
 
-# Inputs
-age = st.number_input("Age", 18, 70)
-income = st.number_input("Monthly Income", 10000, 300000)
-trips = st.number_input("Number of Trips", 0, 20)
-passport = st.selectbox("Passport", [0, 1])
-city = st.selectbox("City Tier", [1, 2, 3])
+sys.stderr = DummyFile()
+import mlflow
+sys.stderr = sys.__stderr__
 
-# Prediction
-if st.button("Predict"):
-    try:
-        columns = model.feature_names
+logging.getLogger("mlflow").setLevel(logging.CRITICAL)
 
-        input_df = pd.DataFrame(
-            np.ones((1, len(columns))),
-            columns=columns
-        )
+DATASET_PATH = "./train.csv"
+MODELS_FOLDER = "./models"
 
-        input_df["Age"] = age
-        input_df["MonthlyIncome"] = income
-        input_df["NumberOfTrips"] = trips
-        input_df["Passport"] = passport
-        input_df["CityTier"] = city
+def load_models(models_folder=MODELS_FOLDER):
+    models = {}
+    if not os.path.exists(models_folder):
+        st.error(f"Models folder '{models_folder}' not found!")
+        return models
+    for file in os.listdir(models_folder):
+        if file.endswith(".pkl"):
+            model_name = file.replace(".pkl", "")
+            models[model_name] = joblib.load(os.path.join(models_folder, file))
+    return models
 
-        input_df = input_df.astype(float)
+def get_feature_names(dataset_path=DATASET_PATH):
+    if not os.path.exists(dataset_path):
+        return []
+    df = pd.read_csv(dataset_path)
+    return [col for col in df.columns if col != 'target']
 
-        prob = model.predict_proba(input_df)[0][1]
+st.title("Tourism Prediction App")
 
-        st.write(f"Purchase Probability: {prob:.2f}")
+models = load_models()
 
-        if prob > 0.3:
-            st.success("Customer will purchase")
-        else:
-            st.error("Customer will NOT purchase")
+if models:
+    model_name = st.selectbox("Choose Model", list(models.keys()))
+    model = models[model_name]
 
-    except Exception as e:
-        st.error(f"Prediction failed: {e}")
+    feature_names = get_feature_names()
+
+    input_data = {}
+    for feature in feature_names:
+        input_data[feature] = float(st.text_input(feature, "0"))
+
+    if st.button("Predict"):
+        try:
+            df = pd.DataFrame([input_data])
+            prediction = model.predict(df)
+            st.success(f"Predicted Value: {prediction[0]}")
+        except Exception as e:
+            st.error(f"Prediction failed: {e}")
+else:
+    st.warning("No models found.")
