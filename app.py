@@ -1,61 +1,57 @@
 import streamlit as st
-import os
 import joblib
 import pandas as pd
-import warnings
+import os
 
-warnings.filterwarnings("ignore")
+# ===== LOAD MODEL =====
+@st.cache_resource
+def load_model():
+    model_path = "model.pkl"
 
-DATASET_PATH = "./train.csv"
-MODELS_FOLDER = "./models"
+    if not os.path.exists(model_path):
+        st.error("model.pkl not found!")
+        return None
 
-def load_models(models_folder=MODELS_FOLDER):
-    models = {}
-    if not os.path.exists(models_folder):
-        st.error(f"Models folder '{models_folder}' not found!")
-        return models
-    files = [f for f in os.listdir(models_folder) if f.endswith(".pkl")]
-    if not files:
-        st.warning(f"No .pkl model files found in '{models_folder}'")
-        return models
-    for file in files:
-        model_name = file.replace(".pkl", "")
-        try:
-            models[model_name] = joblib.load(os.path.join(models_folder, file))
-        except Exception as e:
-            st.error(f"Failed to load {file}: {e}")
-    return models
+    try:
+        model = joblib.load(model_path)
+        return model
+    except Exception as e:
+        st.error(f"Error loading model: {e}")
+        return None
 
-def get_feature_names(dataset_path=DATASET_PATH):
-    if not os.path.exists(dataset_path):
-        return []
-    df = pd.read_csv(dataset_path)
-    return [col for col in df.columns if col != 'ProdTaken']  # FIXED TARGET COLUMN
+model = load_model()
 
+# ===== UI =====
 st.title("Tourism Prediction App")
+st.write("Enter Customer Details")
 
-models = load_models()
+# FIXED FEATURES (same as training)
+age = st.number_input("Age", value=35)
+income = st.number_input("Monthly Income", value=150000)
+trips = st.number_input("Number of Trips", value=10)
+passport = st.selectbox("Passport (0 = No, 1 = Yes)", [0, 1])
+city = st.selectbox("City Tier (1/2/3)", [1, 2, 3])
 
-if models:
-    model_name = st.selectbox("Choose Model", list(models.keys()))
-    model = models[model_name]
+# ===== PREDICTION =====
+if st.button("Predict"):
+    if model is None:
+        st.error("Model not loaded.")
+    else:
+        input_df = pd.DataFrame([{
+            "Age": age,
+            "MonthlyIncome": income,
+            "NumberOfTrips": trips,
+            "Passport": passport,
+            "CityTier": city
+        }])
 
-    feature_names = get_feature_names()
-
-    input_data = {}
-    for feature in feature_names:
-        val = st.text_input(feature, "0")
         try:
-            input_data[feature] = float(val)
-        except:
-            input_data[feature] = 0.0
+            prediction = model.predict(input_df)[0]
 
-    if st.button("Predict"):
-        try:
-            df = pd.DataFrame([input_data])
-            prediction = model.predict(df)
-            st.success(f"Prediction: {prediction[0]}")
+            if prediction == 1:
+                st.success("Customer is likely to purchase")
+            else:
+                st.warning("Customer is NOT likely to purchase")
+
         except Exception as e:
             st.error(f"Prediction failed: {e}")
-else:
-    st.warning("No models found.")
